@@ -2,8 +2,9 @@ import os
 
 # Defaults
 HOME = os.path.expanduser("~")
+DIR_IN = os.path.join(HOME, "AppData", "Local", "PokerTracker 4", "Processed", "PokerStars")
 FILE_IN = os.path.join(HOME, "Personal", "Hands.txt")
-FILE_OUT = os.path.join(HOME, "Personal", "Hands_NoCO.txt")
+FILE_OUT = os.path.join("C:\\", "Laurent", "Personalia", "Poker", "Hands_NoCO.txt")
 
 
 class PSNoCashOut:
@@ -22,7 +23,7 @@ class PSNoCashOut:
 
     @staticmethod
     def _dump_hand(hand_buffer, file_out):
-        with open(file_out, 'a') as fout:
+        with open(file_out, 'a', encoding='utf-8') as fout:
             for line in hand_buffer:
                 fout.write(line + '\n')
             fout.write('\n')
@@ -39,7 +40,18 @@ class PSNoCashOut:
         return processed_hands
 
     @classmethod
+    def process_dir(cls, dir_in=DIR_IN, file_out=FILE_OUT, b_recursive=True, b_write_all=False):
+        for entry in os.listdir(dir_in):
+            full_path = os.path.join(dir_in, entry)
+            if os.path.isdir(full_path) and b_recursive:
+                cls.process_dir(full_path, file_out, b_recursive, b_write_all)
+            elif full_path.endswith('.txt'):
+                cls.process_file(full_path, file_out, b_write_all)
+
+    @classmethod
     def process_file(cls, file_in=FILE_IN, file_out=FILE_OUT, b_write_all=False):
+        print(f"Processing file [{file_in}]...")
+
         processed_hands = cls.collect_processed_hands(file_out)
 
         hand_buffer = []
@@ -51,7 +63,7 @@ class PSNoCashOut:
         hands_written = 0
 
         at_hand = 0
-        with open(file_in, 'r') as fin:
+        with open(file_in, 'r', encoding='utf-8') as fin:
             for line in fin:
                 line = line.strip()
                 # Write buffered hand to output if necessary, and reset buffer
@@ -99,4 +111,5 @@ class PSNoCashOut:
 
 if __name__ == '__main__':
     ps_conv = PSNoCashOut()
-    ps_conv.process_file(file_in=os.path.join(HOME, "Personal", "Hands2.txt"), b_write_all=True)
+    ps_conv.process_dir()
+    # ps_conv.process_file(file_in=os.path.join(HOME, "Personal", "Hands2.txt"), b_write_all=True)
